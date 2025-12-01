@@ -47,10 +47,12 @@ public class AuthService {
 
     /**
      * Authenticate user and generate tokens
+     * Supports login with both username and email
      */
     @Transactional
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByUsername(request.getUsername())
+        // Find user by username or email
+        User user = userRepository.findByUsernameOrEmail(request.getUsername())
             .orElseThrow(() -> new BadCredentialsException("Invalid username or password"));
 
         // Check if account is locked
@@ -59,7 +61,8 @@ public class AuthService {
         }
 
         try {
-            // Authenticate
+            // Authenticate using the identifier (username or email)
+            // CustomUserDetailsService will handle finding the user by username or email
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
             );

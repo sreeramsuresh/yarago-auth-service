@@ -26,16 +26,17 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-            .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
+    public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
+        // Support login with both username and email
+        User user = userRepository.findByUsernameOrEmail(usernameOrEmail)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found: " + usernameOrEmail));
 
         if (!user.getActive()) {
-            throw new UsernameNotFoundException("User account is inactive: " + username);
+            throw new UsernameNotFoundException("User account is inactive: " + usernameOrEmail);
         }
 
         if (user.getAccountLocked()) {
-            throw new UsernameNotFoundException("User account is locked: " + username);
+            throw new UsernameNotFoundException("User account is locked: " + usernameOrEmail);
         }
 
         return new org.springframework.security.core.userdetails.User(
